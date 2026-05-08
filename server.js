@@ -17,17 +17,28 @@ const { v4: uuidv4 } = require('uuid');
 const QRCode    = require('qrcode');
 
 // ── Config ────────────────────────────────────────────────────
-const PORT       = process.env.PORT       || 3000;
-const BASE_URL   = (process.env.BASE_URL  || `http://localhost:${PORT}`).replace(/\/$/, '');
-const PHOTOS_DIR = process.env.RENDER_DISK_PATH
-                   ? path.join(process.env.RENDER_DISK_PATH, 'photos')
-                   : path.join(__dirname, 'photos');
+const PORT = process.env.PORT || 3000;
+const BASE_URL = (process.env.BASE_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
+
+// Détection Render
+const IS_RENDER = !!process.env.RENDER;
+
+// Dossier photos : local → ./photos | Render → disque persistant
+const PHOTOS_DIR = IS_RENDER
+  ? path.join(process.env.RENDER_DISK_PATH || '/opt/render/project/src', 'photos')
+  : path.join(__dirname, 'photos');
+
+// Email Brevo
 const BREVO_KEY  = process.env.BREVO_API_KEY  || '';
 const BREVO_FROM = process.env.BREVO_SENDER   || 'photobooth@bal2026.fr';
+
 const MAX_GALLERY = 100;
 
 // Créer le dossier photos s'il n'existe pas
-if (!fs.existsSync(PHOTOS_DIR)) fs.mkdirSync(PHOTOS_DIR, { recursive: true });
+if (!fs.existsSync(PHOTOS_DIR)) {
+  console.log(`📂 Création du dossier photos : ${PHOTOS_DIR}`);
+  fs.mkdirSync(PHOTOS_DIR, { recursive: true });
+}
 
 // ── Express ───────────────────────────────────────────────────
 const app    = express();
